@@ -10,6 +10,7 @@ import Upload from './pages/Upload';
 import Result from './pages/AnalysisDetail';
 import Dashboard from './pages/Dashboard';
 import Closet from './pages/Closet';
+import Community from './pages/Community';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -99,6 +100,15 @@ function AppContent() {
             element={
               <ProtectedRoute>
                 <Closet />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/community"
+            element={
+              <ProtectedRoute>
+                <Community />
               </ProtectedRoute>
             }
           />

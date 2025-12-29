@@ -1,5 +1,5 @@
 import React from 'react';
-import { Star, TrendingUp, DollarSign, Palette, AlertCircle } from 'lucide-react';
+import { Star, TrendingUp, DollarSign, Palette, AlertCircle, Cloud } from 'lucide-react';
 
 const AnalysisResult = ({ analysis }) => {
   const { analysis_result } = analysis;
@@ -27,6 +27,28 @@ const AnalysisResult = ({ analysis }) => {
         </h3>
         <p className="text-gray-700 leading-relaxed">{analysis_result.style_description}</p>
       </div>
+
+      {analysis_result.weather_suitability && (
+        <div className={`card ${analysis_result.weather_suitability.is_suitable ? 'bg-blue-50 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
+          <h3 className="text-xl font-bold text-gray-900 mb-3 flex items-center">
+            <Cloud className={`mr-2 ${analysis_result.weather_suitability.is_suitable ? 'text-blue-600' : 'text-orange-600'}`} size={24} />
+            Weather Suitability
+          </h3>
+          <div className="flex flex-col">
+            <div className="flex items-start mb-2">
+              <span className={`font-bold mr-2 ${analysis_result.weather_suitability.is_suitable ? 'text-blue-700' : 'text-orange-700'}`}>
+                {analysis_result.weather_suitability.is_suitable ? '✓ Suitable' : '⚠ Not Ideal'}
+              </span>
+              <span className="text-gray-800">{analysis_result.weather_suitability.reason}</span>
+            </div>
+            {analysis_result.weather_suitability.advice && (
+              <p className="text-sm text-gray-600 italic border-t border-black/5 pt-2 mt-1">
+                💡 Tip: {analysis_result.weather_suitability.advice}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="card">
         <h3 className="text-xl font-bold text-gray-900 mb-4">Detected Clothing Items</h3>

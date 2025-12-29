@@ -13,13 +13,14 @@ class GeminiService:
     def __init__(self):
         self.model = genai.GenerativeModel('models/gemini-2.5-flash')
     
-    async def analyze_outfit(self, image_path: str, occasion: str = None) -> AnalysisResult:
+    async def analyze_outfit(self, image_path: str, occasion: str = None, weather: str = None) -> AnalysisResult:
         """
         Analyze outfit image using Gemini Vision API.
         
         Args:
             image_path: Path to the outfit image
             occasion: Optional event/occasion the outfit is for
+            weather: Optional weather context (e.g., "20°C, Rainy")
             
         Returns:
             AnalysisResult object with complete analysis
@@ -32,9 +33,14 @@ class GeminiService:
             if occasion:
                 occasion_context = f"The user intends to wear this outfit for: {occasion}. Please specifically evaluate its suitability for this occasion in your style description, rating, and suggestions."
 
-            # Create detailed prompt for Gemini
-            prompt = """Analyze the outfit in this image carefully and provide a comprehensive fashion analysis. """ + occasion_context + """
+            weather_context = ""
+            print(f"DEBUG: Analyzing with weather: {weather}")
+            if weather:
+                weather_context = f"The user's local weather is: {weather}. Please specifically warn the user if the outfit is not practical for this weather (e.g. wearing sandals in rain, or heavy coat in heat) and suggest alternatives."
 
+            # Create detailed prompt for Gemini
+            prompt = """Analyze the outfit in this image carefully and provide a comprehensive fashion analysis. """ + occasion_context + " " + weather_context + """
+            
 Return ONLY a valid JSON object (no markdown, no code blocks, no additional text) with this exact structure:
 
 {
@@ -68,16 +74,22 @@ Return ONLY a valid JSON object (no markdown, no code blocks, no additional text
     "color pairing suggestion 1",
     "color pairing suggestion 2",
     "color pairing suggestion 3"
-  ]
+  ],
+  "weather_suitability": {
+    "is_suitable": true, 
+    "reason": "Create this ONLY if weather context is provided. Evaluate if outfit works for the weather.",
+    "advice": "Advice if not suitable or tips for the weather."
+  }
 }
 
-Be specific, professional, and helpful. The rating should be between 1-10."""
+Be specific, professional, and helpful. The rating should be between 1-10. If weather context is not provided, you MUST set weather_suitability to null."""
 
             # Generate response
             response = self.model.generate_content([prompt, img])
             
             # Parse JSON response
             response_text = response.text.strip()
+            print(f"DEBUG: Gemini raw response: {response_text}")
             
             # Remove markdown code blocks if present
             if response_text.startswith("```json"):

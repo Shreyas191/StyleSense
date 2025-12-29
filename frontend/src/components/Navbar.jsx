@@ -1,16 +1,19 @@
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, Upload, LayoutDashboard } from 'lucide-react';
+import { LogOut, User, Upload, LayoutDashboard, Users, Heart } from 'lucide-react';
 
 const Navbar = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
+
+  const isActive = (path) => location.pathname.startsWith(path);
 
   return (
     <nav className="bg-white shadow-md">
@@ -24,30 +27,58 @@ const Navbar = () => {
           <div className="flex items-center space-x-4">
             {isAuthenticated ? (
               <>
-                <Link to="/upload" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
-                  <Upload size={20} />
+                <Link
+                  to="/upload"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/upload') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                >
+                  <Upload size={18} />
                   <span>Upload</span>
                 </Link>
-                <Link to="/closet" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
-                  <LayoutDashboard size={20} />
+
+                <Link
+                  to="/closet"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/closet') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                >
+                  <LayoutDashboard size={18} />
                   <span>Closet</span>
                 </Link>
-                <Link to="/dashboard" className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors">
-                  <LayoutDashboard size={20} />
+
+                <Link
+                  to="/dashboard"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/dashboard') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                >
+                  <LayoutDashboard size={18} />
                   <span>Dashboard</span>
                 </Link>
+
+                <Link
+                  to="/community"
+                  className={`flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium transition-colors ${isActive('/community') ? 'bg-primary-50 text-primary-700' : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                >
+                  <Users size={18} />
+                  <span>Community</span>
+                </Link>
+
+                <div className="h-6 w-px bg-gray-200 mx-2"></div>
+
                 <div className="flex items-center space-x-2 text-gray-700">
-                  <User size={20} />
-                  <span>{user?.username}</span>
+                  <div className="bg-primary-100 p-1.5 rounded-full">
+                    <User size={16} className="text-primary-700" />
+                  </div>
+                  <span className="text-sm font-medium">{user?.username}</span>
                 </div>
-                <button onClick={handleLogout} className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors">
-                  <LogOut size={20} />
-                  <span>Logout</span>
+
+                <button onClick={handleLogout} className="flex items-center space-x-1 text-gray-500 hover:text-red-600 transition-colors ml-2">
+                  <LogOut size={18} />
                 </button>
               </>
             ) : (
               <>
-                <Link to="/login" className="text-gray-700 hover:text-primary-600 transition-colors">Login</Link>
+                <Link to="/login" className="text-gray-700 hover:text-primary-600 transition-colors font-medium">Login</Link>
                 <Link to="/signup" className="btn-primary">Sign Up</Link>
               </>
             )}

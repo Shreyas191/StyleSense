@@ -21,6 +21,11 @@ class CheaperAlternative(BaseModel):
     estimated_price_range: str
 
 
+class WeatherSuitability(BaseModel):
+    is_suitable: bool
+    reason: str
+    advice: str
+
 class AnalysisResult(BaseModel):
     detected_outfit_items: List[ClothingItem]
     style_description: str
@@ -29,11 +34,26 @@ class AnalysisResult(BaseModel):
     improvement_suggestions: List[str]
     cheaper_alternatives: List[CheaperAlternative]
     color_matching_recommendations: List[str]
+    weather_suitability: Optional[WeatherSuitability] = None
+
+
+
+
+class Comment(BaseModel):
+    user_id: str
+    username: str
+    text: str
+    created_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class OutfitAnalysisBase(BaseModel):
     image_filename: str
     analysis_result: AnalysisResult
+    is_public: bool = False
+    likes: List[str] = []
+    dislikes: List[str] = []
+    tags: List[str] = []
+    comments: List[Comment] = []
 
 
 class OutfitAnalysisCreate(OutfitAnalysisBase):
@@ -89,3 +109,6 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: List[ChatMessage]
+
+
+

@@ -4,7 +4,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import AnalysisResult from '../components/AnalysisResult';
 import ChatAssistant from '../components/ChatAssistant';
 import { outfitAPI } from '../services/api';
-import { ArrowLeft, Loader, Volume2 } from 'lucide-react';
+import { ArrowLeft, Loader, Volume2, Globe } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+
+// ...
 
 const AnalysisDetail = () => {
   const { id } = useParams();
@@ -12,6 +15,7 @@ const AnalysisDetail = () => {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [tagInput, setTagInput] = useState('');
 
   useEffect(() => {
     fetchAnalysis();
@@ -28,13 +32,29 @@ const AnalysisDetail = () => {
     }
   };
 
+  const handleTogglePublic = async () => {
+    try {
+      const tags = tagInput.trim() ? [tagInput.trim()] : null;
+      const response = await outfitAPI.togglePublic(id, tags);
+      if (response.data.success) {
+        setAnalysis(prev => ({
+          ...prev,
+          is_public: response.data.is_public,
+          tags: response.data.is_public && tags ? tags : prev.tags // Update tags if setting to public
+        }));
+        toast.success(response.data.is_public ? 'Posted to Community!' : 'Removed from Community');
+      }
+    } catch (err) {
+      toast.error('Failed to update visibility');
+    }
+  };
+
   const speakFeedback = () => {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
       const text = analysis?.analysis_result?.compliment || analysis?.analysis_result?.style_description || "Here is your outfit analysis.";
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 1.0;
-      utterance.pitch = 1.1;
       const voices = window.speechSynthesis.getVoices();
       const preferredVoice = voices.find(voice => voice.name.includes('Google US English') || voice.name.includes('Samantha'));
       if (preferredVoice) utterance.voice = preferredVoice;
@@ -98,6 +118,47 @@ const AnalysisDetail = () => {
                 <Volume2 size={20} className="mr-2" />
                 Hear Stylist Feedback
               </button>
+
+              <div className="mt-6 pt-6 border-t border-gray-100">
+                <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center">
+                  <Globe className="mr-2 text-indigo-600" size={16} />
+                  Community Visibility
+                </h4>
+
+                {analysis.is_public ? (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-2">Visible to community.</p>
+                    {analysis.tags && analysis.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {analysis.tags.map((tag, i) => (
+                          <span key={i} className="text-xs bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full">{tag}</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-500 mb-3">Post to get feedback.</p>
+                    <input
+                      type="text"
+                      placeholder="Tag (e.g. Date Night)"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      className="w-full text-sm border border-gray-300 rounded-lg px-3 py-2 mb-2 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                )}
+
+                <button
+                  onClick={handleTogglePublic}
+                  className={`w-full py-2 px-4 rounded-lg text-sm font-medium transition-colors ${analysis.is_public
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700'
+                    }`}
+                >
+                  {analysis.is_public ? 'Make Private' : 'Post with Tag'}
+                </button>
+              </div>
             </div>
           </div>
 

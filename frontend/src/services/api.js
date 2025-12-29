@@ -46,6 +46,14 @@ export const outfitAPI = {
   },
   getAnalysis: (id) => api.get(`/api/outfit/${id}`),
   chatWithStylist: (id, data) => api.post(`/api/outfit/chat/${id}`, data),
+
+  // Community features
+  getCommunityFeed: (limit = 50, skip = 0) => api.get(`/api/outfit/community/feed?limit=${limit}&skip=${skip}`),
+  togglePublic: (id, tags) => api.post(`/api/outfit/${id}/toggle-public`, tags),
+  toggleLike: (id) => api.post(`/api/outfit/${id}/like`),
+  toggleDislike: (id) => api.post(`/api/outfit/${id}/dislike`),
+  addComment: (id, text) => api.post(`/api/outfit/${id}/comment`, { text }),
+
   getUserAnalyses: (limit = 50, skip = 0) =>
     api.get(`/api/outfit/user/all?limit=${limit}&skip=${skip}`),
   deleteAnalysis: (id) => api.delete(`/api/outfit/${id}`),

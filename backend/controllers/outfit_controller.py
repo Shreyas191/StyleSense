@@ -1,15 +1,87 @@
 from fastapi import HTTPException, status, UploadFile
 from typing import List, Optional
-from models.outfit import OutfitAnalysis, OutfitAnalysisCreate, OutfitAnalysisResponse
+from models.outfit import OutfitAnalysis, OutfitAnalysisCreate, OutfitAnalysisResponse, Comment
+
 from services.outfit_service import outfit_service
 from services.gemini_service import gemini_service
 from services.user_service import user_service
 from utils.file_utils import validate_file, save_upload_file, get_file_path, delete_file
 
-
 class OutfitController:
     @staticmethod
-    async def analyze_outfit(file: UploadFile, user_email: str, occasion: Optional[str] = None) -> dict:
+    async def get_community_feed(limit: int = 50, skip: int = 0) -> dict:
+        """Get the community feed."""
+        analyses = await outfit_service.get_community_feed(limit, skip)
+        return {
+            "success": True,
+            "data": analyses
+        }
+
+    @staticmethod
+    async def toggle_public_status(analysis_id: str, user_email: str, tags: List[str] = None) -> dict:
+        """Toggle public status of an analysis."""
+        user = await user_service.get_user_by_email(user_email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        new_status = await outfit_service.toggle_public(analysis_id, user.id, tags)
+        return {
+            "success": True,
+            "message": "Visibility updated",
+            "is_public": new_status
+        }
+
+    @staticmethod
+    async def toggle_like(analysis_id: str, user_email: str) -> dict:
+        """Toggle like on an analysis."""
+        user = await user_service.get_user_by_email(user_email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        is_liked = await outfit_service.toggle_like(analysis_id, user.id)
+        return {
+            "success": True,
+            "liked": is_liked
+        }
+
+    @staticmethod
+    async def toggle_dislike(analysis_id: str, user_email: str) -> dict:
+        """Toggle dislike on an analysis."""
+        user = await user_service.get_user_by_email(user_email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        is_disliked = await outfit_service.toggle_dislike(analysis_id, user.id)
+        return {
+            "success": True,
+            "disliked": is_disliked
+        }
+
+    @staticmethod
+    async def add_comment(analysis_id: str, user_email: str, text: str) -> dict:
+        """Add a comment to an analysis."""
+        user = await user_service.get_user_by_email(user_email)
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+            
+        comment = Comment(
+            user_id=user.id,
+            username=user.username,
+            text=text
+        )
+        
+        await outfit_service.add_comment(analysis_id, comment.model_dump())
+        return {
+            "success": True,
+            "message": "Comment added",
+            "data": comment
+        }
+
+
+
+
+    @staticmethod
+    async def analyze_outfit(file: UploadFile, user_email: str, occasion: Optional[str] = None, weather: Optional[str] = None) -> dict:
         """
         Analyze outfit from uploaded image.
         """
@@ -36,7 +108,7 @@ class OutfitController:
             
             try:
                 # Analyze outfit using Gemini
-                analysis_result = await gemini_service.analyze_outfit(file_path, occasion)
+                analysis_result = await gemini_service.analyze_outfit(file_path, occasion, weather)
                 
                 # Save analysis to database
                 analysis_data = OutfitAnalysisCreate(
