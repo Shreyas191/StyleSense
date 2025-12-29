@@ -350,4 +350,4 @@ For issues and questions:
 
 ---
 
-**Made with ❤️ using AI and modern web technologies**
+**Made with ❤️ using modern web technologies**
